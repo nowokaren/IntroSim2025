@@ -79,7 +79,14 @@ program simple
         end do
     end do
     print *, f
-            
+
+open(unit=20, file='forces.dat', status='replace')
+write(20, *) '# i   rx          ry          rz          fx          fy          fz'
+
+do i = 1, N
+    write(20, '(I5, 6ES15.6E2)') i, r(i,1), r(i,2), r(i,3), f(i,1), f(i,2), f(i,3)
+end do
+close(20)
 
 
 
