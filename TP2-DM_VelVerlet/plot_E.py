@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 
-# ------------------- Parámetros -------------------
+
 estados_dir = "estados"
 energy_file = "energy.dat"
-L           = 5.0               # lado de la caja
-interval_ms = 0.0000001                  # 1 ms → ~1000 FPS (máximo práctico)
+L           = 2.0               
+interval_ms = 10               
 
 print("Cargando datos…")
 energy = np.loadtxt(energy_file, comments='#')
@@ -43,6 +43,8 @@ axE = fig.add_subplot(gs[0])
 axE.plot(steps_E, E_tot, 'b-', lw=2)
 axE.set_xlabel('Paso'); axE.set_ylabel('E total')
 axE.set_title('Energía potencial')
+#axE.set_yscale("log")
+#axE.set_xlim(0.001, None)
 axE.grid(alpha=0.3)
 vline = axE.axvline(0, c='red', lw=2)
 
@@ -66,22 +68,26 @@ for a,b in edges:
 
 # ------------------- Animación -------------------
 def animate(frame):
-    # energía
     vline.set_xdata([frame, frame])
-
-    # 3D
+    
     rx, ry, rz = pos[frame].T
     fx, fy, fz = force[frame].T
+    
+    # --- POSICIONES ---
     scatter._offsets3d = (rx, ry, rz)
-
-    # quiver es el único objeto “pesado”; lo borramos y recreamos
+    
+    # --- FLECHAS DE FUERZA (EL TRUCO QUE FALTABA) ---
     global quiver
     quiver.remove()
-    quiver = ax3.quiver(rx, ry, rz, fx, fy, fz,
-                        length=0.3, normalize=True,
-                        color='red', alpha=0.7)
-
-    ax3.set_title(f'Paso {frame}')
+    # escalamos las flechas para que se vean bien
+    scale = L * 0.15                    # 15% del lado de la caja
+    quiver = ax3.quiver(rx, ry, rz,
+                        fx, fy, fz,
+                        length=scale, 
+                        normalize=True,
+                        color='red', alpha=0.8, linewidth=1.5)
+    
+    ax3.set_title(f'Paso {frame} | Epot = {E_tot[frame]:.10f}')
     return scatter, vline
 
 anim = FuncAnimation(fig, animate, frames=n_steps,

@@ -41,13 +41,30 @@ print(i)
 print(rx)
 print(ry)
 print(rz)
+dx = rx[1]-rx[0]
+dy = ry[1]-ry[0]
+dz = rz[1]-rz[0]
+dr = [dx, dy, dz]
+for i in range(3):
+    if dr[i]>L/2:
+        print("antes", dr[i])
+        dr[i]-=L
+        print("dps", dr[i])
+    elif dr[i]<-L/2:
+        print("antes", dr[i])
+        dr[i]+=L
+        print("dsp", dr[i])
+#dx, dy, dz =  3.1803218040094228E-002,  0.11412444806163841,   0.30798857106300215
+print("dr final" + str(dr))
 dt = 1
-d = np.sqrt((rx[1]-rx[0])**2 + (ry[1]-ry[0])**2 + (rz[1]-rz[0])**2 )
-#print()
-f_mag = 24 * 1 * (-2*(1**12 / d**13) + (1**6 / d**7))
-fx = f_mag * (rx[1]-rx[0])/d
-fy = f_mag * (ry[1]-ry[0])/d
-fz = f_mag * (rz[1]-rz[0])/d
+d = np.sqrt((dr[0])**2 + (dr[1])**2 + (dr[2])**2 )
+print(d)
+f_mag = - 24 * 1.0 * (2*(1.0**12 / d**13) - (1.0**6 / d**7))
+#f_mag = 24 * 1 * (-2*(1**12 / d**13) + (1**6 / d**7))
+print("f_mag", f_mag)
+fx = f_mag * (dx)/d
+fy = f_mag * (dy)/d
+fz = f_mag * (dz)/d
 R = (rx + fx/2,ry + fy/2,rz + fz/2)
 print(R)
 
