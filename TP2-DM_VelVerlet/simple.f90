@@ -32,7 +32,7 @@ program simple
 
     N         = 108                    ! 108 partículas (FCC 3x3x3)
     sigma     = 1.0d0
-    L         = ((N/0.4d0)**(1.0d0/3.0d0))*(sigma**3)  ! ρ = N/V = 0.4
+    L         = ((N/0.4d0)**(1.0d0/3.0d0))*sigma  ! ρ = N/V = 0.4
     eps       = 1.0d0
     m         = 1.0d0
     dc        = 2.5d0*sigma
@@ -69,11 +69,12 @@ program simple
     
     ! MINIMIZACIÓN DE ENERGÍA
     do n_step = 1, N_minE
-        print *, "step", n_step
         if (n_step > 1) then
             r = r + f*(dt*dt)/(2.0d0*m)   ! r(t+dt) = r(t) + f dt²/2m
-            where(r >= L)  r = r - L
-            where(r <  0)  r = r + L
+            !where(r >= L)  r = r - L
+            !where(r <  0)  r = r + L
+            !r = mod(r, L)
+            r = r - L * floor(r / L)
         end if
         Vtot = 0.0d0
         f = 0.0d0
@@ -96,13 +97,10 @@ program simple
                 f(i,2) = f(i,2) + fy; f(j,2) = f(j,2) - fy
                 f(i,3) = f(i,3) + fz; f(j,3) = f(j,3) - fz
                 !print*, i, j, d, vpair, fx, fy, fz
-                dx = r(1,1)-r(2,1); dy = r(1,2)-r(2,2); dz = r(1,3)-r(2,3)
-                dx = dx - L*nint(dx/L); dy = dy - L*nint(dy/L); dz = dz - L*nint(dz/L)
-                d = sqrt(dx*dx + dy*dy + dz*dz)
             end do
         end do
         E(n_step) = Vtot
-        print*, "step =", n_step, "Epot =", Vtot
+        !print*, "step =", n_step, "Epot =", Vtot
 
         if (n_step == 1) then
             open(30, file='traj.vtf', status='replace')
@@ -112,7 +110,7 @@ program simple
                 write(30,'(A,I0,A)') 'atom ',i-1,' name Ar'
                 write(30,'(A,I0,A,F6.3)') 'atom ',i-1,' radius ',0.5
             end do
-            ! caja
+            ! c aja
             write(30,'(A,3F12.6)') 'unitcell ', L, L, L
         else
             open(30, file='traj.vtf', status='old', position='append')
@@ -127,11 +125,13 @@ program simple
     end do
 
     ! TERMALIZACIÓN/equilibración
-    do n_step = N_minE, N_steps
+    do n_step = N_minE+1, N_steps
         v = v + f*dt/(2.0d0*m)  ! v(t+dt/2)
         r = r + v * dt          ! r(t+dt)
-        where(r >= L)  r = r - L
-        where(r <  0)  r = r + L
+        !where(r >= L)  r = r - L
+        !where(r <  0)  r = r + L
+        !r = mod(r, L)
+        r = r - L * floor(r / L)
         Vtot = 0.0d0; f = 0.0d0
         do i = 1, N-1
             do j = i+1, N
@@ -159,7 +159,7 @@ program simple
         v = v+ f*dt/(2.0d0*m)   ! v(t+dt)
         temp = sum(v**2) /(3.0d0*N)
         T(n_step) = temp
-        print*, "step =", n_step, "Epot =", Vtot, " T =", temp
+        !print*, "step =", n_step, "Epot =", Vtot, " T =", temp
 
         if (n_step == 1) then
             open(30, file='traj.vtf', status='replace')
