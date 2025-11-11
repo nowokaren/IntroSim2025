@@ -1,6 +1,4 @@
 TP2-DM/simulaciones/
-# Ignorar simulaciones y archivos grandes
-TP2-DM/simulaciones/
 TP2-DM/*.vtf
 TP2-DM_VelVerlet/*.vtf
 *.o
