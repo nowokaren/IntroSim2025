@@ -71,9 +71,6 @@ program simple
     do n_step = 1, N_minE
         if (n_step > 1) then
             r = r + f*(dt*dt)/(2.0d0*m)   ! r(t+dt) = r(t) + f dt²/2m
-            !where(r >= L)  r = r - L
-            !where(r <  0)  r = r + L
-            !r = mod(r, L)
             r = r - L * floor(r / L)
         end if
         Vtot = 0.0d0
@@ -123,14 +120,11 @@ program simple
         close(30)
 
     end do
-
+    dt=dt/4
     ! TERMALIZACIÓN/equilibración
     do n_step = N_minE+1, N_steps
         v = v + f*dt/(2.0d0*m)  ! v(t+dt/2)
         r = r + v * dt          ! r(t+dt)
-        !where(r >= L)  r = r - L
-        !where(r <  0)  r = r + L
-        !r = mod(r, L)
         r = r - L * floor(r / L)
         Vtot = 0.0d0; f = 0.0d0
         do i = 1, N-1
