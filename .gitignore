@@ -1,1 +1,5 @@
 TP2-DM_VelVerlet/traj.vtf
+*.o
+*.vtf
+*.dat
+*.out
