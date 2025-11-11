@@ -8,14 +8,26 @@
         use ziggurat
         implicit none
         logical :: es
-        integer :: seed, N, i, j, n_step, N_steps, N_minE, N_eq 
+        integer :: seed, N, i, j, n_step, N_steps, N_minE, N_eq, ios, nargs
         real(8) :: L, dc, Vc, sigma, eps, dt, m
-        real(8) :: gamma, kB, T_target, potential, virial
+        real(8) :: gamma, kB, T_target, potential, virial, rho
         real(8) :: kinetic, total_energy, temp, pressure, lgv_term
         real(8), allocatable :: r(:,:), v(:,:), f(:,:), sumv(:)
-        real(8), allocatable :: K(:), Vpot(:), E(:), T(:), P(:)   ! K, V, E, T, P = ARRAYS
+        real(8), allocatable :: K(:), Vpot(:), E(:), T(:), P(:), Vir(:)   ! K, V, E, T, P = ARRAYS
+        character(80) :: filename, dirname
+        character(len=20) :: arg1, arg2
 
-        character(80) :: filename
+
+        T_target = 1.1d0
+        rho      = 0.4d0
+        arg1 = ''
+        arg2 = ''
+        call get_command_argument(1, arg1)
+        call get_command_argument(2, arg2)
+        if (len_trim(arg1) > 0) read(arg1, *) T_target
+        if (len_trim(arg2) > 0) read(arg2, *) rho
+    
+
 
     ![NO TOCAR] Inicializa generador de número random
 
@@ -32,26 +44,30 @@
         call zigset(seed)
     ![FIN NO TOCAR]    
 
-        N         = 108                   
+        N         = 200                   
         sigma     = 1.0d0
-        L         = ((N/0.4d0)**(1.0d0/3.0d0))*sigma  ! ρ = N/V = 0.4
+       !rho       = arg2
+        L         = ((N/rho)**(1.0d0/3.0d0))*sigma  ! ρ = N/V = 0.4
         eps       = 1.0d0
         m         = 1.0d0
         kB        = 1.0d0
         dc        = 2.5d0*sigma
-        T_target  = 1.5d0                  ! T = 1.5 ε/kB ; T = m <v²> / (3Nk_B)
-        dt        = 0.005d0                ! paso temporal
-        N_minE    = 10000                  ! min energía
-        N_eq      = 50000                  ! equilibración
+       !T_target  = arg1                  ! T = 1.5 ε/kB ; T = m <v²> / (3Nk_B)
+        gamma     = 0.5d0                    ! Coeficiente de fricción
+        dt        = 0.001d0/gamma                ! paso temporal
+        N_minE    = 1000000                ! min energía
+        N_eq      = 5000000                ! equilibración
         N_steps   = N_eq + N_minE
-
-        gamma     = 0.5                    ! Coeficiente de fricción
-        !lgv_term  = sqrt(2.0*gamma*kB*T_target*dt)
         lgv_term = sqrt(2.0d0 * gamma * m * kB * T_target / dt)
+
+  
+        write(dirname, '(A, I0, A, F4.2, A)') 'simulaciones/N', N, '_T', T_target, '_rho'
+        write(dirname(len_trim(dirname)+1:), '(F4.2)') real(N / (L**3))
+        call system('mkdir -p ' // trim(dirname))
 
         
         allocate(r(N,3), v(N,3), f(N,3), sumv(3))
-        allocate(K(N_steps), Vpot(N_steps), E(N_steps), T(N_steps), P(N_steps))
+        allocate(K(N_steps), Vpot(N_steps), E(N_steps), T(N_steps), P(N_steps), Vir(N_steps))
         Vc = 4.0d0*eps*( (sigma/dc)**12 - (sigma/dc)**6 )
 
         ! POSICIONES
@@ -90,11 +106,10 @@
             E(n_step) = total_energy
             T(n_step) = temp
             P(n_step) = pressure
-
-    
+            Vir(n_step) = virial
 
             if (n_step == 1) then
-                open(30, file='traj.vtf', status='replace')
+                open(30, file=trim(dirname)//'/traj.vtf', status='replace')
                 write(30,'(A)') '# LJ - IntroSim 2025'
                 ! átomos
                 do i = 1, N
@@ -104,7 +119,7 @@
                 ! caja
                 write(30,'(A,3F12.6)') 'unitcell ', L, L, L
             else
-                open(30, file='traj.vtf', status='old', position='append')
+                open(30, file=trim(dirname)//'/traj.vtf', status='old', position='append')
             end if
 
             write(30,'(A)') 'timestep ordered'
@@ -131,9 +146,10 @@
             E(n_step) = total_energy
             T(n_step) = temp
             P(n_step) = pressure
+            Vir(n_step) = virial
 
             if (n_step == 1) then
-                open(30, file='traj.vtf', status='replace')
+                open(30, file=trim(dirname)//'/traj.vtf', status='replace')
                 write(30,'(A)') '# LJ - IntroSim 2025'
                 ! átomos
                 do i = 1, N
@@ -143,7 +159,7 @@
                 ! caja
                 write(30,'(A,3F12.6)') 'unitcell ', L, L, L
             else
-                open(30, file='traj.vtf', status='old', position='append')
+                open(30, file=trim(dirname)//'/traj.vtf', status='old', position='append')
             end if
 
             write(30,'(A)') 'timestep ordered'
@@ -155,15 +171,15 @@
 
 
         ! Guardar energia, temperatura y presion
-        open(21, file='mediciones.dat', status='replace')
-        write(21,*) '# step     K          V          E         T         P'
+        open(21, file=trim(dirname)//'/mediciones.dat', status='replace')
+        write(21,*) '# step     K          V          E         T         P         Vir'
         do i = 1, N_steps
-            write(21,'(I6,5ES14.6)') i, K(i), Vpot(i), E(i), T(i), P(i)
+            write(21,'(I6,6ES14.6)') i, K(i), Vpot(i), E(i), T(i), P(i), Vir(i)
         end do
         close(21)
         
         ! --- Guardar configuración ---
-        open(unit=99, file="config.txt", status="replace")
+        open(unit=99, file=trim(dirname)//'/config.txt', status="replace")
         write(99,'(A, I0)') "N = ", N
         write(99,'(A, F12.6)') "L = ", L
         write(99,'(A, F12.6)') "sigma = ", sigma
@@ -178,6 +194,9 @@
         write(99,'(A, I0)') "N_eq = ", N_eq
         write(99,'(A, I0)') "N_steps = ", N_steps
         write(99,'(A, F12.6)') "Vc = ", Vc
+        write(99,'(A, F12.6)') "rho = ", N / (L**3)
+        call system('date "+Fecha: %Y-%m-%d %H:%M:%S" >> ' // trim(dirname)//'/config.txt')
+
         close(99)
 
 
@@ -273,8 +292,8 @@
     ! ==============================================================
     subroutine lgv_force(v, f, N, m, dt, T_target, gamma, lgv_term)
         integer, intent(in) :: N
-        real(8), intent(in) :: m, dt, T_target, gamma, v(N,3), lgv_term
-        real(8), intent(inout) ::f(N,3)
+        real(8), intent(in) :: m, dt, T_target, gamma, lgv_term
+        real(8), intent(inout) ::f(N,3), v(N,3)
         
         integer :: i
 
