@@ -6,3 +6,6 @@ TP2-DM_VelVerlet/*.vtf
 *.dat
 *.out
 Clases/IntroSim_clases.pdf
+TP2-DM_simulaciones/**/*.xyz
+TP2-DM_simulaciones/**/*.vtf
+TP2-DM_simulaciones/**/*.vmd

@@ -197,9 +197,7 @@
             end do
         end function pbc
 
-    ! ==============================================================
     ! Calcula fuerzas LJ, energía potencial y virial con PBC
-    ! ==============================================================
     subroutine force(r, f, potential, virial, L, N, dc, eps, sigma, Vc)
         real(8), intent(in) :: r(N,3), L, dc, eps, sigma, Vc
         integer, intent(in) :: N
@@ -233,24 +231,21 @@
         end do
     end subroutine force
 
-    ! ==============================================================
     ! Actualiza v(t + dt/2), r(t + dt) y aplica PBC
-    ! ==============================================================
     subroutine verlet_positions(r, v, f, dt, m, L, N)
         integer, intent(in) :: N
         real(8), intent(in) :: dt, m, L
         real(8), intent(inout) :: r(N,3), v(N,3), f(N,3)
         integer :: i
 
-        v = v + f * (dt / (2.0d0 * m))        ! 1. v(t + dt/2)
-        r = r + v * dt                        ! 2. r(t + dt)        
-        r = r - L * floor(r / L)              ! 3. PBC: r = r - L * floor(r / L)
+        v = v + f * (dt / (2.0d0 * m))        !  v(t + dt/2)
+        r = r + v * dt                        !  r(t + dt)        
+        r = r - L * floor(r / L)              !  PBC
 
     end subroutine verlet_positions
 
-    ! ==============================================================
-    ! Actualiza velocidades finales: v(t + dt)
-    ! ==============================================================
+
+    ! Actualiza velocidades finales v(t + dt)
     subroutine verlet_velocities(v, f, dt, m, N)
         integer, intent(in) :: N
         real(8), intent(in) :: dt, m
@@ -259,17 +254,13 @@
         v = v + f * (dt / (2.0d0 * m))
     end subroutine verlet_velocities
 
-    ! ==============================================================
+
     ! Termostato de Langevin
-    ! ==============================================================
     subroutine lgv_force(v, f, N, m, dt, T_target, gamma, lgv_term)
         integer, intent(in) :: N
         real(8), intent(in) :: m, dt, T_target, gamma, lgv_term
         real(8), intent(inout) ::f(N,3), v(N,3)
-        
         integer :: i
-
-
         do i = 1, N
             ! Fricción
             f(i,:) = f(i,:) - gamma * m * v(i,:)
@@ -281,12 +272,9 @@
         end do
     end subroutine lgv_force
 
-    ! ==============================================================
     ! Calcula cantidades físicas instantáneas
-    ! ==============================================================
-    subroutine measurements(r, v, potential, virial, &
-                            kinetic, total_energy, temp, pressure, &
-                            N, m, L)
+    subroutine measurements(r, v, potential, virial, kinetic, total_energy, &
+                            temp, pressure, m, L)
         integer, intent(in) :: N
         real(8), intent(in) :: r(N,3), v(N,3), potential, virial, m, L
         real(8), intent(out) :: kinetic, total_energy, temp, pressure
@@ -300,7 +288,6 @@
         temp = sum(v**2) / (3.0d0 * N)        ! Temperatura instantánea
         total_energy = kinetic + potential    ! Energía total
 
-        ! Presión: P = ρT + virial / (3V)
         pressure = density * temp + virial / (3.0d0 * volume)
 
     end subroutine measurements
