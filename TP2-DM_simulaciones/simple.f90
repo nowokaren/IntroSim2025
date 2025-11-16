@@ -59,14 +59,14 @@
        !T_target  = arg1                  ! T = 1.5 ε/kB ; T = m <v²> / (3Nk_B)
         gamma     = 0.3d0                  ! Coeficiente de fricción
         dt        = 0.002d0               ! paso temporal
-        N_minE    = 1000000                ! min energía
-        N_eq      = 5000000                ! equilibración
+        N_minE    = 500000                ! min energía
+        N_eq      = 3000000                ! equilibración
         N_steps   = N_eq + N_minE
         lgv_term = sqrt(2.0d0 * gamma * m * kB * T_target / dt)
 
   
-        write(dirname, '(A, I0, A, F4.2, A, F4.3, A, F4.3)') &
-                'simulaciones/N', N, '_T', T_target, '_rho', real(N / (L**3)), '_dt', dt
+        write(dirname, '(A, I0, A, F4.2, A, F5.3, A, F5.3)') &
+                'simulaciones/sim_N', N, '_T', T_target, '_rho', real(N / (L**3)), '_dt', dt
 
         call system('mkdir -p ' // trim(dirname))
 
@@ -274,7 +274,7 @@
 
     ! Calcula cantidades físicas instantáneas
     subroutine measurements(r, v, potential, virial, kinetic, total_energy, &
-                            temp, pressure, m, L)
+                            temp, pressure, N, m, L)
         integer, intent(in) :: N
         real(8), intent(in) :: r(N,3), v(N,3), potential, virial, m, L
         real(8), intent(out) :: kinetic, total_energy, temp, pressure
