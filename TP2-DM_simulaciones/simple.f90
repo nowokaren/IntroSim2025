@@ -59,14 +59,14 @@
        !T_target  = arg1                  ! T = 1.5 ε/kB ; T = m <v²> / (3Nk_B)
         gamma     = 0.3d0                  ! Coeficiente de fricción
         dt        = 0.002d0               ! paso temporal
-        N_minE    = 500000                ! min energía
-        N_eq      = 3000000                ! equilibración
+        N_minE    = 30000                     ! min energía
+        N_eq      = 2000000                ! equilibración
         N_steps   = N_eq + N_minE
         lgv_term = sqrt(2.0d0 * gamma * m * kB * T_target / dt)
 
   
         write(dirname, '(A, I0, A, F4.2, A, F5.3, A, F5.3)') &
-                'simulaciones/sim_N', N, '_T', T_target, '_rho', real(N / (L**3)), '_dt', dt
+                'simulaciones/N', N, '_T', T_target, '_rho', real(N / (L**3)), '_dt', dt
 
         call system('mkdir -p ' // trim(dirname))
 
@@ -93,6 +93,9 @@
         v = v - spread(sumv/N, 1, N) 
         temp = sum(v**2) / (3.0d0 * N)  
         v = v * sqrt(T_target / temp)
+        call force(r, f, potential, virial, L, N, dc, eps, sigma, Vc)
+
+        dt = 0.0001d0
                 
         ! MINIMIZACIÓN DE ENERGÍA (NVE)
         do n_step = 1, N_minE
@@ -113,6 +116,7 @@
         end do
         write(30,'(A,3F12.6)') 'unitcell ', L, L, L
 
+        dt = 0.002d0    
         ! TERMALIZACIÓN/equilibración
         do n_step = N_minE+1, N_steps
 
@@ -132,7 +136,7 @@
                 write(21,'(I10,6ES14.6)') n_step, kinetic, potential, total_energy, temp, pressure, virial
                 write(30,'(A)') 'timestep ordered'
                 do i = 1, N
-                    write(30,'(3F16.8)') r(i,1), r(i,2), r(i,3)
+                    write(30,'(3E16.8)') r(i,1), r(i,2), r(i,3)
                 end do
             end if
 
