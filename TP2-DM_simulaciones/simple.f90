@@ -155,7 +155,7 @@
         end if
 
         
-        ! --- Guardar configuración 
+        ! Guardar configuración 
         open(unit=99, file=trim(dirname)//'/config.txt', status="replace")
         write(99,'(A, I0)') "N = ", N
         write(99,'(A, F12.6)') "L = ", L
