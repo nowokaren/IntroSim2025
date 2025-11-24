@@ -1,3 +1,4 @@
+
 TP2-DM/simulaciones/
 TP2-DM/*.vtf
 TP2-DM_VelVerlet/*.vtf
@@ -5,7 +6,5 @@ TP2-DM_VelVerlet/*.vtf
 *.vtf
 *.dat
 *.out
-Clases/IntroSim_clases.pdf
-TP2-DM_simulaciones/**/*.xyz
-TP2-DM_simulaciones/**/*.vtf
-TP2-DM_simulaciones/**/*.vmd
+Clases/
+otros/

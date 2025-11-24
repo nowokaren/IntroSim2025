@@ -9,8 +9,8 @@ T=1.1
 echo "     Simulaciones a T = ${T} variando densidad "
 
 
-#for rho in 0.001 0.01 0.1 0.8 0.9 1.0; do
-for rho in 1.0 0.9 0.8 0.78 0.71 0.64 0.57 0.5  ; do
+for rho in 0.001 0.01 0.1 ; do
+#for rho in 1.0 0.9 0.8 0.78 0.71 0.64 0.57 0.5  ; do
     echo "-> Ejecutando T=${T}, rho=${rho}"
     ${EXEC} ${T} ${rho}
 done
